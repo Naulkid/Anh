@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  aideom-vn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aideom_vn_dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount data để cập nhật CSV không cần rebuild
+      - ./data:/app/data:ro
+      # Mount outputs để lưu kết quả ra host
+      - ./outputs:/app/outputs
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# Uncomment để dùng với nginx reverse proxy:
+# nginx:
+#   image: nginx:alpine
+#   ports:
+#     - "80:80"
+#     - "443:443"
+#   volumes:
+#     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+#   depends_on:
+#     - aideom-vn
